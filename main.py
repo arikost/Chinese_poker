@@ -37,7 +37,6 @@ class Game:
             print("-------------------------------------------------------------------------------------------")
             print("-------------------------------------------------------------------------------------------")
             print("-------------------------------------------------------------------------------------------")
-            print("cards left:", self.cardDeck.cards_left, "turn: ", turn)
             print(self._Player1.name + "-------------------")
             print("hand1:  "); Card.print_pretty_cards(self._Player1.hands[1]) 
             print("hand2:  "); Card.print_pretty_cards(self._Player1.hands[2]) 
@@ -58,10 +57,12 @@ class Game:
                 current_player = self._Player2
             turn += 1
             card = Card.new(self.cardDeck.draw())
+            print("cards left:", self.cardDeck.cards_left, "turn: ", turn)
+
             print("----------------------"+current_player.name + " Turn------------------------")
             print("New Card Is:")
             Card.print_pretty_card(card)
-            if turn >= 40 :
+            if turn > 40 :
                 hand_selected = random.randint(0,5)
                 if hand_selected != 0:
                     current_player.hands[hand_selected].pop()
@@ -88,11 +89,11 @@ class Game:
         player1_scorre = 0
         player2_scorre = 0
         for i in range(5):
-            p1 = self.evaluetor.evaluate(self._Player1.hands[i+1]) 
-            p2 = self.evaluetor.evaluate(self._Player2.hands[i+1])
-            if p1 > p2:
+            p1 = self.evaluetor.evaluate(self._Player1.hands[i+1][0:2], self._Player1.hands[i+1][2:5]) 
+            p2 = self.evaluetor.evaluate(self._Player2.hands[i+1][0:2], self._Player2.hands[i+1][2:5])
+            if p1 < p2:
                 player1_scorre += 1
-            elif p1 < p2:
+            elif p1 > p2:
                 player2_scorre += 1
             else:
                 continue
