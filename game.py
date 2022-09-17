@@ -1,43 +1,70 @@
 """
 framework for the game Chinese poker:
 """
+from ast import Delete
 from time import time
 import pyCardDeck
 from treys import Card, Evaluator
 import random
 import time
-    
-class Game:
-    def __init__(self):
-        card = ["As", "Ks", "Qs", "Js", "Ts", "9s", "8s", 
+cards = ["As", "Ks", "Qs", "Js", "Ts", "9s", "8s", 
                 "Ad", "Kd", "Qd", "Jd", "Td", "9d", "8d", 
                 "Ac", "Kc", "Qc", "Jc", "Tc", "9c", "8c",
                 "Ah", "Kh", "Qh", "Jh", "Th", "9h", "8h"]
-        self.cardDeck = pyCardDeck.Deck(cards=card)
+class Game:
+    def __init__(self):
+        
+
+        
         self.evaluetor = Evaluator()
         self.Player1 = [[],[],[],[],[]]
         self.Player2 = [[],[],[],[],[]]
         self.board = []
+        self.cardDeck = pyCardDeck.Deck(cards=[Card.new(c) for c in cards])
+        self.current_card = Card()
         self.reset()
     def reset(self):
-        self.cardDeck.shuffle_back()
+        
+        
+        if(self.cardDeck.cards_left == 5):
+            
+            self.cardDeck.add_many(cards=self.board)
+            self.cardDeck.add_many(cards=self.Player1[0])
+            self.cardDeck.add_many(cards=self.Player1[1])
+            self.cardDeck.add_many(cards=self.Player1[2])
+            self.cardDeck.add_many(cards=self.Player1[3])
+            self.cardDeck.add_many(cards=self.Player1[4])
+            self.cardDeck.add_many(cards=self.Player2[0])
+            self.cardDeck.add_many(cards=self.Player2[1])
+            self.cardDeck.add_many(cards=self.Player2[2])
+            self.cardDeck.add_many(cards=self.Player2[3])
+            self.cardDeck.add_many(cards=self.Player2[4])
+            
+        self.cardDeck.shuffle()
         self.turn = 0
+        self.board.clear()
         for i in range(5):
-            self.Player1[i].append(Card.new(self.cardDeck.draw()))
-            self.Player2[i].append(Card.new(self.cardDeck.draw()))
+            self.Player1[i].clear()
+            self.Player2[i].clear()
+            self.Player1[i].append(self.cardDeck.draw())
+            self.Player2[i].append(self.cardDeck.draw())
             if i < 3:
-                self.board.append(Card.new(self.cardDeck.draw()))
-    def play_step(self, hand_selected,  card):
+                self.board.append(self.cardDeck.draw())
+        self._draw_next_card()
+    def _draw_next_card(self):
+        self.current_card = self.cardDeck.draw()
+
+    def play_step(self, hand_selected, player):
+        self.turn += 1
+        if player == 1:
+            self.Player1[hand_selected].append(self.current_card)
+        else:
+            self.Player2[hand_selected].append(self.current_card)
+        
         if self.turn == 10:
             return True
-        self.turn += 1
-        if self.turn % 2 == 0:
-            self.Player1[hand_selected].append(card)
-        else:
-            self.Player2[hand_selected].append(card)
-        if self.turn == 11:
-            return True
         else: 
+            self._draw_next_card()
             return False
     
     def get_score(self):
@@ -55,9 +82,10 @@ class Game:
 if __name__ == '__main__':
     game = Game()
     hand_selected = 0
+    current_player = 1
     while True:
-        new_card = Card.new(game.cardDeck.draw())
-        if game.play_step(hand_selected%5, new_card):
+        
+        if game.play_step(hand_selected%5, current_player%2):
             p1 , p2 = game.get_score()
             print("board:")
             Card.print_pretty_cards(game.board)
@@ -70,7 +98,8 @@ if __name__ == '__main__':
             print("player1 won hands", p1, "\nplayer2 won hands",p2) 
             break
         hand_selected += 1
-
+        current_player += 1
+    game.reset()
         
     
         
