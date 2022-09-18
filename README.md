@@ -87,6 +87,7 @@ for idx in range(len(game_over)):
         target[idx][action[idx]] = Q_new  
 ```        
 Input size 25 (vector of the cards on the table)
+
 Output size 5 (vector of the value of each decision)
 
 
