@@ -26,31 +26,31 @@ install the following packeges:
 ```  
 **algorithm:**
 
-    I created two players and let them play against each other for 2500 iterations, 
-    at each stage of the game we save the snapshot of the table in the form of a matrix,     
-    at the end of the game after the results are revealed we attach a score to each decision according to the victory(1) or loss(-1) of the chosen hand,
-    finally we transfer to the neural network model the All the information and train it (the model).
-    Because at each stage the possibility of choice is reduced, so I make a correction in the calculation of the Balman equation for illegal choices.
-    ```
-    for idx in range(len(game_over)):
-           
-            Q_new = reward[idx]
-            if not game_over[idx]:
-                for i in range(5):
-                    if next_state[idx][i+20] == 0:
-                        option.append(i)
-                
-                prediction = self.model(next_state[idx])             
-                hand_selected = torch.argmax(prediction).item()
-                Q_new = reward[idx] + self.gamma * prediction[hand_selected] 
-                if not hand_selected in option and len(option) > 1:
-                    Q_new *= (-1)
-              
-                    
-            option.clear()
-            target[idx][action[idx]] = Q_new  
-    ```        
-    Input size 25 (vector of the cards on the table)
-    Output size 5 (vector of the value of each decision)
+I created two players and let them play against each other for 2500 iterations, 
+at each stage of the game we save the snapshot of the table in the form of a matrix,     
+at the end of the game after the results are revealed we attach a score to each decision according to the victory(1) or loss(-1) of the chosen hand,
+finally we transfer to the neural network model the All the information and train it (the model).
+Because at each stage the possibility of choice is reduced, so I make a correction in the calculation of the Balman equation for illegal choices.
+```
+for idx in range(len(game_over)):
+
+        Q_new = reward[idx]
+        if not game_over[idx]:
+            for i in range(5):
+                if next_state[idx][i+20] == 0:
+                    option.append(i)
+
+            prediction = self.model(next_state[idx])             
+            hand_selected = torch.argmax(prediction).item()
+            Q_new = reward[idx] + self.gamma * prediction[hand_selected] 
+            if not hand_selected in option and len(option) > 1:
+                Q_new *= (-1)
+
+
+        option.clear()
+        target[idx][action[idx]] = Q_new  
+```        
+Input size 25 (vector of the cards on the table)
+Output size 5 (vector of the value of each decision)
 
 
