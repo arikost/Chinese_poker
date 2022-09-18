@@ -45,7 +45,7 @@ class Agent:
         
         board_arr_temp = np.array(game.board)
         board_arr = np.concatenate((board_arr_temp, [0,game.current_card]))
-
+        #size of state is 5x5
         state = [ oppoenet_closeCards, 
                 oppoenet_openCards, 
                 board_arr,
@@ -56,7 +56,7 @@ class Agent:
         return np.array(state, dtype=int)
 
     def remember(self, node:Node):
-        
+        #the state has to be a vector
         self.memory.append((node.state.flatten(), node.next_state.flatten(), node.action, node.reward, node.game_over))
     def train_short_memory(self, node:Node):
         self.trainer.train_step(node.state.flatten(), node.next_state.flatten(), node.action, node.reward, node.game_over)
@@ -70,7 +70,7 @@ class Agent:
         states, next_state, hand_selected, rewards, game_over = zip(*mini_sample)
         self.trainer.train_step(states, next_state, hand_selected, rewards, game_over)
 
-    def gat_action(self, state):
+    def gat_action(self, state, flag=False):
         self.epsilon = 80 - self.n_games
         hand_selected = 0
         option = []
@@ -87,24 +87,21 @@ class Agent:
             state0 = torch.tensor(state, dtype=torch.float)
             
             prediction = self.model(state0.flatten())
-            
+            if flag:
+                print(prediction)
             
             while True:
                 hand_selected = torch.argmax(prediction).item()
                 if not hand_selected in option:
-                    prediction[hand_selected] = -1000000000
+                    prediction[hand_selected] = -1000000000 # selecting the highest legale value  
                 else:
                     break    
         return hand_selected
 
 def set_reward(node:Node, hands_won):
-    if node.action in hands_won and len(hands_won) > 2:
-        node.set_reward(2)
-    elif not node.action in hands_won and len(hands_won) > 2:
+    if node.action in hands_won: 
         node.set_reward(1)
-    elif node.action in hands_won and len(hands_won) < 3:
-        node.set_reward(0)
-    elif not node.action in hands_won and len(hands_won) < 3:
+    else:
         node.set_reward(-1)
 
 def train_vs_agent(game:Game, agent1:Agent, num_iter = 5000):
@@ -173,12 +170,17 @@ def train_vs_humen(game:Game, agent:Agent):
         
         if current_player % 2 == 1:
             state = agent.get_state(game)
-            hand_selected = agent.gat_action(state)
+            hand_selected = agent.gat_action(state,flag=True)
             game_over = game.play_step(hand_selected, current_player % 2)
             next_state = agent.get_state(game)
             node_list_player1.append(Node(state, next_state, hand_selected, game_over))
         else:
-            hand_selected = int(input("select hand"))
+            while True:
+                hand_selected = int(input("select hand"))
+                if len(game.Player2[hand_selected]) == 2:
+                    print("bad choise... try again")
+                else:
+                    break
             game_over = game.play_step(hand_selected, current_player % 2)
         if game_over:
             p1 , p2 = game.get_score()
@@ -194,12 +196,14 @@ def train_vs_humen(game:Game, agent:Agent):
                 game.reset()
                 current_player = 0
                 node_list_player1.clear
+            else:    
+                break
         current_player += 1
 
 if __name__ == "__main__":
     game = Game()
     agent = Agent(1)
-    train_vs_agent(game, agent, num_iter=2000)
+    train_vs_agent(game, agent, num_iter=2500)
     agent.model.save()
     train_vs_humen(game, agent)
     

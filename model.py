@@ -50,16 +50,24 @@ class QTrainer:
         pred = self.model(state)
 
         target = pred.clone()
-       
+        option = []
         
         for idx in range(len(game_over)):
            
             Q_new = reward[idx]
             if not game_over[idx]:
+                for i in range(5):
+                    if next_state[idx][i+20] == 0:
+                        option.append(i)
+                
                 prediction = self.model(next_state[idx])             
                 hand_selected = torch.argmax(prediction).item()
                 Q_new = reward[idx] + self.gamma * prediction[hand_selected] 
-
+                if not hand_selected in option and len(option) > 1:
+                    Q_new *= (-1)
+              
+                    
+            option.clear()
             target[idx][action[idx]] = Q_new  
              
         # 2: Q_new = r + y * max(next_predicted Q value) -> only do this if not done
