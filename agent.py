@@ -26,9 +26,18 @@ class Agent:
         self.player = player
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
-        self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(25, 256, 5)
-        self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+        self.memory1 = deque(maxlen=MAX_MEMORY) # popleft()
+        self.memory2 = deque(maxlen=MAX_MEMORY) # popleft()
+        self.memory3 = deque(maxlen=MAX_MEMORY) # popleft()
+        self.memory4 = deque(maxlen=MAX_MEMORY) # popleft()
+        self.model1 = Linear_QNet(51, 256, 5)
+        self.model2 = Linear_QNet(51, 256, 4)
+        self.model3 = Linear_QNet(51, 256, 3)
+        self.model4 = Linear_QNet(51, 256, 2)
+        self.trainer1 = QTrainer(self.model1, lr=LR, gamma=self.gamma)
+        self.trainer2 = QTrainer(self.model2, lr=LR, gamma=self.gamma)
+        self.trainer3 = QTrainer(self.model3, lr=LR, gamma=self.gamma)
+        self.trainer4 = QTrainer(self.model4, lr=LR, gamma=self.gamma)
     
     def get_state(self, game:Game):
         if self.player == 1:
@@ -85,17 +94,12 @@ class Agent:
             hand_selected = option[x]
         else:
             state0 = torch.tensor(state, dtype=torch.float)
-            
+            #TODO: prediction based on the number of option
             prediction = self.model(state0.flatten())
             if flag:
                 print(prediction)
             
-            while True:
-                hand_selected = torch.argmax(prediction).item()
-                if not hand_selected in option:
-                    prediction[hand_selected] = -1000000000 # selecting the highest legale value  
-                else:
-                    break    
+             
         return hand_selected
 
 def set_reward(node:Node, hands_won):
@@ -157,8 +161,7 @@ def train_vs_humen(game:Game, agent:Agent):
     current_player = 1
 
     while True:
-        print("board:")
-        Card.print_pretty_cards(game.board)
+        
         print("player 1:")
         for h in game.Player1:
             Card.print_pretty_cards(h) 
@@ -167,7 +170,7 @@ def train_vs_humen(game:Game, agent:Agent):
             Card.print_pretty_cards(h)
         print("current card:")
         Card.print_pretty_card(game.current_card)
-        
+        print("------------\n------------\n------------\n")    
         if current_player % 2 == 1:
             state = agent.get_state(game)
             hand_selected = agent.gat_action(state,flag=True)
@@ -195,7 +198,7 @@ def train_vs_humen(game:Game, agent:Agent):
             if int(input("Would you like to play again? (0 = no, 1 = yes)")) == 1:
                 game.reset()
                 current_player = 0
-                node_list_player1.clear
+                node_list_player1.clear()
             else:    
                 break
         current_player += 1
